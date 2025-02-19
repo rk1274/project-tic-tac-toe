@@ -48,6 +48,10 @@ body {
   height: 50px;
 }
 
+.start-button:hover {
+  background-color: rgba(158, 150, 112, 0.985)
+}
+
 .display {
   height: 20px;
   color: #B9B28A;
