@@ -1,8 +1,14 @@
 const gameBoard = (function () {
-    const gameboard = [["", "" ,""],["","",""],["","",""]]
+    const gameboard = [["", "" ,""],["","",""],["","",""]];
+    let inPlay = false;
+    let numMove = 0;
 
     const playCross = (y, x) => gameboard[y][x] = "x"
     const playCircle = (y, x) => gameboard[y][x] = "o"
+
+    const isInPlay = () => inPlay
+    const stopPlay = () => inPlay = false
+    const startPlay = () => inPlay = true
     
     const getBoard = () => gameboard
 
@@ -28,14 +34,13 @@ const gameBoard = (function () {
         return false
     }
 
-    return {playCross, playCircle, getBoard, checkWin};
+    return {playCross, playCircle, getBoard, checkWin, isInPlay, stopPlay, startPlay};
 })();
 
+var container = document.querySelector(".board-container");
 var curPlayer = "x";
 
 const displayBoard = () => {
-    const container = document.querySelector(".board-container");
-
     for (let y = 0; y < 3; y++) {
         for (let x = 0; x < 3; x++) {
             let boardItem = document.createElement("BUTTON");
@@ -49,14 +54,24 @@ const displayBoard = () => {
 }
 
 const play = (y, x, element) => {
+    if (!gameBoard.isInPlay()) {
+        return
+    }
+
     if (curPlayer === "o") {
         gameBoard.playCircle(x,y);
 
         element.textContent = "o";
 
-        curPlayer = "x";
-
         element.disabled = "disabled";
+
+        if (gameBoard.checkWin("o")) {
+            gameBoard.stopPlay();
+
+            console.log("o wins!!")
+        }
+
+        curPlayer = "x";
         return
     }
 
@@ -64,9 +79,19 @@ const play = (y, x, element) => {
 
     element.textContent = "x";
 
-    curPlayer = "o";
-
     element.disabled = "disabled";
+
+    if (gameBoard.checkWin("x")) {
+        gameBoard.stopPlay();
+
+        console.log("x wins!!")
+    }
+
+    curPlayer = "o";
+}
+
+const startGame = () => {
+    gameBoard.startPlay();
 }
 
 displayBoard()
