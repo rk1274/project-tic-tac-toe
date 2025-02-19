@@ -51,12 +51,11 @@ const gameBoard = (function () {
     return {makeMove, getBoard, hasWinner, getNumMoves, isInPlay, stopPlay, startPlay};
 })();
 
-const winnerDisplay = document.querySelector(".winner-display");
-const playerDisplay = document.querySelector(".player-display");
+const display = document.querySelector(".display");
 const startButton = document.querySelector(".start-button");
 const container = document.querySelector(".board-container");
 
-var curPlayer = "x";
+var curPlayer = "X";
 
 const updateStartButton = () => {
     startButton.textContent = gameBoard.isInPlay() ? "Restart" : "Play again";
@@ -78,7 +77,7 @@ const displayBoard = () => {
 
 const setPlayer = (player) => {
     curPlayer = player;
-    playerDisplay.textContent = player;
+    display.textContent = `${player} Turn`;
 }
 
 container.addEventListener('mouseover', e => {
@@ -104,24 +103,24 @@ const play = (y, x, element) => {
     if (gameBoard.hasWinner(curPlayer)) {
         gameBoard.stopPlay();
         updateStartButton();
-        winnerDisplay.textContent = `${curPlayer} wins!!`;
+        display.textContent = `${curPlayer} wins!!`;
         return;
     }
 
     if (gameBoard.getNumMoves() === 9) {
         gameBoard.stopPlay();
         updateStartButton();
-        winnerDisplay.textContent = `its a tie!!`;
+        display.textContent = `its a tie!!`;
         return;
     }
 
-    setPlayer(curPlayer === "x" ? "o" : "x");
+    setPlayer(curPlayer === "X" ? "O" : "X");
 }
 
 const startGame = () => {
     gameBoard.startPlay();
     updateStartButton();
-    setPlayer("x")
+    setPlayer("X")
     displayBoard();
 }
 
