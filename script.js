@@ -1,46 +1,70 @@
 const gameBoard = (function () {
-    const gameboard = [["", "" ,""],["","",""],["","",""]];
+    let gameboard;
     let inPlay = false;
     let numMove = 0;
 
-    const playCross = (y, x) => gameboard[y][x] = "x"
-    const playCircle = (y, x) => gameboard[y][x] = "o"
+    const resetBoard = () => gameboard = [["", "", ""], ["", "", ""], ["", "", ""]];
+    const getBoard = () => gameboard.map(row => [...row]);
+    const getNumMoves = () => numMove;
 
-    const isInPlay = () => inPlay
-    const stopPlay = () => inPlay = false
-    const startPlay = () => inPlay = true
-    
-    const getBoard = () => gameboard
+    const makeMove = (y, x, player) => {
+        if (!inPlay || gameboard[y][x] !== "") return false;
 
-    const checkWin = (type) => {
-        for (let i = 0; i < 3; i++) {
-            if (gameboard[0][i] === type && gameboard[1][i] === type && gameboard[2][i] === type) {
-                return true
-            }
-
-            if (gameboard[i][0] === type && gameboard[i][1] === type && gameboard[i][2] === type) {
-                return true
-            }
-        }
-
-        if (gameboard[0][0] === type && gameboard[1][1] === type && gameboard[2][2] === type) {
-            return true
-        }
-
-        if (gameboard[0][2] === type && gameboard[1][1] === type && gameboard[2][0] === type) {
-            return true
-        }
-
-        return false
+        gameboard[y][x] = player;
+        numMove++;
+        
+        return true;
     }
 
-    return {playCross, playCircle, getBoard, checkWin, isInPlay, stopPlay, startPlay};
+    const isInPlay = () => inPlay;
+    const stopPlay = () => inPlay = false;
+    const startPlay = () => {
+        resetBoard();
+        numMove = 0;
+        inPlay = true;
+    }
+
+    const hasWinner = (type) => {
+        const winPatterns = [
+            // Rows
+            [[0,0], [0,1], [0,2]],
+            [[1,0], [1,1], [1,2]],
+            [[2,0], [2,1], [2,2]],
+    
+            // Columns
+            [[0,0], [1,0], [2,0]],
+            [[0,1], [1,1], [2,1]],
+            [[0,2], [1,2], [2,2]],
+    
+            // Diagonals
+            [[0,0], [1,1], [2,2]],
+            [[0,2], [1,1], [2,0]]
+        ];
+
+        return winPatterns.some(pattern => 
+            pattern.every(([y, x]) => gameboard[y][x] === type)
+        );
+    }
+
+    resetBoard();
+
+    return {makeMove, getBoard, hasWinner, getNumMoves, isInPlay, stopPlay, startPlay};
 })();
 
-var container = document.querySelector(".board-container");
+const winnerDisplay = document.querySelector(".winner-display");
+const playerDisplay = document.querySelector(".player-display");
+const startButton = document.querySelector(".start-button");
+const container = document.querySelector(".board-container");
+
 var curPlayer = "x";
 
+const updateStartButton = () => {
+    startButton.textContent = gameBoard.isInPlay() ? "Restart" : "Play again";
+};
+
 const displayBoard = () => {
+    container.innerHTML = "";
+
     for (let y = 0; y < 3; y++) {
         for (let x = 0; x < 3; x++) {
             let boardItem = document.createElement("BUTTON");
@@ -50,48 +74,55 @@ const displayBoard = () => {
             container.append(boardItem)
         }
     }
-
 }
 
+const setPlayer = (player) => {
+    curPlayer = player;
+    playerDisplay.textContent = player;
+}
+
+container.addEventListener('mouseover', e => {
+    let button = e.target.closest('button');
+    if (!button || button.disabled || !gameBoard.isInPlay()) { return; }
+
+    button.textContent = curPlayer;
+});
+
+container.addEventListener('mouseout', e => {
+    let button = e.target.closest('button');
+    if (!button || button.disabled || !gameBoard.isInPlay()) { return; }
+
+    button.textContent = '';
+});
+
 const play = (y, x, element) => {
-    if (!gameBoard.isInPlay()) {
-        return
-    }
+    if (!gameBoard.makeMove(y, x, curPlayer)) return;
 
-    if (curPlayer === "o") {
-        gameBoard.playCircle(x,y);
+    element.textContent = curPlayer;
+    element.disabled = true;
 
-        element.textContent = "o";
-
-        element.disabled = "disabled";
-
-        if (gameBoard.checkWin("o")) {
-            gameBoard.stopPlay();
-
-            console.log("o wins!!")
-        }
-
-        curPlayer = "x";
-        return
-    }
-
-    gameBoard.playCross(x,y);
-
-    element.textContent = "x";
-
-    element.disabled = "disabled";
-
-    if (gameBoard.checkWin("x")) {
+    if (gameBoard.hasWinner(curPlayer)) {
         gameBoard.stopPlay();
-
-        console.log("x wins!!")
+        updateStartButton();
+        winnerDisplay.textContent = `${curPlayer} wins!!`;
+        return;
     }
 
-    curPlayer = "o";
+    if (gameBoard.getNumMoves() === 9) {
+        gameBoard.stopPlay();
+        updateStartButton();
+        winnerDisplay.textContent = `its a tie!!`;
+        return;
+    }
+
+    setPlayer(curPlayer === "x" ? "o" : "x");
 }
 
 const startGame = () => {
     gameBoard.startPlay();
+    updateStartButton();
+    setPlayer("x")
+    displayBoard();
 }
 
 displayBoard()
